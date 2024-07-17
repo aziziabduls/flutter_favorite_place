@@ -1,4 +1,5 @@
-import 'package:favorite_place/models/favorite_place.dart';
+import 'dart:convert';
+
 import 'package:favorite_place/pages/add_place.dart';
 import 'package:favorite_place/pages/detail_place.dart';
 import 'package:favorite_place/providers/data_provider.dart';
@@ -14,22 +15,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<FavoritePlaceItem> listFav = [
-    FavoritePlaceItem(
-      name: 'Bridge',
-      image: 'https://picsum.photos/id/90/300/300',
-      location: 'Amityvile, Palace, London',
-      lat: -32783483.4,
-      lng: -6379494.5,
-    ),
-    FavoritePlaceItem(
-      name: 'Bridge2',
-      image: 'https://picsum.photos/id/91/300/300',
-      location: 'Amityvile, Palace, London',
-      lat: -32783483.4,
-      lng: -6379494.5,
-    ),
-  ];
   @override
   Widget build(BuildContext context) {
     return Consumer<DataProvider>(
@@ -38,7 +23,7 @@ class _HomePageState extends State<HomePage> {
           title: const Text('My Favorite Place'),
         ),
         body: ListView.builder(
-          itemCount: listFav.length,
+          itemCount: value.favPlaceItem.length,
           padding: const EdgeInsets.only(bottom: 70),
           itemBuilder: (context, index) {
             return GestureDetector(
@@ -47,7 +32,7 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => DetailPlace(
-                      favPlace: listFav,
+                      favPlace: value.favPlaceItem,
                       index: index,
                     ),
                   ),
@@ -56,7 +41,7 @@ class _HomePageState extends State<HomePage> {
               child: Stack(
                 children: [
                   Hero(
-                    tag: listFav[index].image!,
+                    tag: value.favPlaceItem[index].image!,
                     transitionOnUserGestures: true,
                     child: Container(
                       height: 300,
@@ -65,9 +50,8 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.grey,
                         borderRadius: BorderRadiusDirectional.circular(10),
                         image: DecorationImage(
-                            image: NetworkImage(
-                              listFav[index].image!,
-                            ),
+                            image: MemoryImage(
+                                base64Decode(value.favPlaceItem[index].image!)),
                             fit: BoxFit.cover),
                       ),
                     ),
@@ -99,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            listFav[index].name.toString(),
+                            value.favPlaceItem[index].name.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -107,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           subtitle: Text(
-                            listFav[index].location.toString(),
+                            value.favPlaceItem[index].location.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,

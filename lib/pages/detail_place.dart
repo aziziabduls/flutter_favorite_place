@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:favorite_place/models/favorite_place.dart';
 import 'package:flutter/material.dart';
 
@@ -41,9 +43,7 @@ class DetailPlace extends StatelessWidget {
                 color: Colors.grey,
                 borderRadius: BorderRadiusDirectional.circular(10),
                 image: DecorationImage(
-                    image: NetworkImage(
-                      favPlace[index].image!,
-                    ),
+                    image: MemoryImage(base64Decode(favPlace[index].image!)),
                     fit: BoxFit.cover),
               ),
             ),

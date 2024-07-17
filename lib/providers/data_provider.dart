@@ -7,7 +7,7 @@ class DataProvider extends ChangeNotifier {
   // get FavoritePlaceItem => all
   List<FavoritePlaceItem> get favPlaceItem => _favPlaceItem;
 
-  void addToCart(FavoritePlaceItem item, int qty) {
+  void addPlace(FavoritePlaceItem item) {
     _favPlaceItem.add(
       FavoritePlaceItem(
         name: item.name,

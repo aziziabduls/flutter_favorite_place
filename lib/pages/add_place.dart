@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:favorite_place/models/favorite_place.dart';
+import 'package:favorite_place/providers/data_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,6 +12,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 class AddPlace extends StatefulWidget {
@@ -35,7 +39,7 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
 
   double lat = 0.0;
   double lng = 0.0;
-  String city = '';
+  String city = '', img64 = '';
 
   late final _mapController = MapController();
 
@@ -70,9 +74,10 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
       debugPrint(position.latitude.toString());
       debugPrint(position.longitude.toString());
       setState(() {
-        city = '${placemarks[0].locality}, ${placemarks[0].administrativeArea}, ${placemarks[0].country}';
-        lat = lat;
-        lng = lng;
+        city =
+            '${placemarks[0].locality}, ${placemarks[0].administrativeArea}, ${placemarks[0].country}';
+        lat = position.latitude;
+        lng = position.longitude;
         shimmer = false;
       });
       _mapController.move(LatLng(lat, lng), 16.0);
@@ -91,7 +96,8 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
         lng,
       );
       setState(() {
-        city = '${placemarks[0].locality}, ${placemarks[0].administrativeArea}, ${placemarks[0].country}';
+        city =
+            '${placemarks[0].locality}, ${placemarks[0].administrativeArea}, ${placemarks[0].country}';
         lat = lat;
         lng = lng;
         shimmer = false;
@@ -152,6 +158,9 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
         imageCache.clear();
         setState(() {
           this.imageFile = File(croppedFile.path);
+          final bytes = File(imageFile.path).readAsBytesSync();
+          img64 = base64Encode(bytes);
+          debugPrint(img64);
         });
       }
     } catch (e) {
@@ -161,7 +170,9 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
 
   Future<void> _getImageFromGallery() async {
     try {
-      await imagepicker.pickImage(source: ImageSource.gallery, imageQuality: 50).then((value) {
+      await imagepicker
+          .pickImage(source: ImageSource.gallery, imageQuality: 50)
+          .then((value) {
         if (value != null) {
           _cropImage(File(value.path));
           // setState(() {
@@ -206,7 +217,23 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
       appBar: AppBar(
         title: const Text('Add new place'),
         actions: [
-          TextButton(onPressed: () {}, child: const Text('Save')),
+          TextButton(
+            onPressed: () {
+              debugPrint('img64: $img64');
+              debugPrint('name: ${textEditingController.text}');
+              debugPrint('location: $city');
+              debugPrint('longlat: $lat , $lng');
+              final favPlace = context.read<DataProvider>();
+              favPlace.addPlace(FavoritePlaceItem(
+                name: textEditingController.text,
+                image: img64,
+                location: city,
+                lat: lat,
+                lng: lng,
+              ));
+            },
+            child: const Text('Save'),
+          ),
         ],
       ),
       body: ListView(
@@ -462,7 +489,8 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
                       ),
                       children: [
                         TileLayer(
-                          urlTemplate: 'https://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+                          urlTemplate:
+                              'https://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
                           userAgentPackageName: 'com.example.app',
                         ),
                         MarkerLayer(
@@ -483,7 +511,8 @@ class _AddPlaceState extends State<AddPlace> with TickerProviderStateMixin {
               Expanded(
                 child: TextButton.icon(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(Colors.grey.shade200),
+                    backgroundColor:
+                        MaterialStatePropertyAll(Colors.grey.shade200),
                   ),
                   onPressed: () async {
                     setState(() {
